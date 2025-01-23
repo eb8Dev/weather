@@ -1,72 +1,33 @@
-// import React, { useState } from 'react';
-// import WeatherForm from './WeatherForm';
-// import WeatherInfo from './WeatherInfo';
-// import './App.css';
-
-// function App() {
-//   const [weather, setWeather] = useState(null);
-//   const [error, setError] = useState('');
-//   // console.log(apiKey);
-
-//   const fetchWeather = async (city) => {
-//     // const apiKey = '';
-//     console.log(process.env.REACT_APP_WEATHER_APIKEY);
-//     // const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-//     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.REACT_APP_WEATHER_APIKEY}&units=metric`;
-
-//     try {
-//       const response = await fetch(url);
-//       if (!response.ok) throw new Error('City not found');
-//       const data = await response.json();
-//       setWeather(data);
-//       setError('');
-//     } catch (err) {
-//       setError(err.message);
-//       setWeather(null);
-//     }
-//   };
-
-//   return (
-//     <div className="app">
-//       <h1>Simple Weather App</h1>
-//       <WeatherForm onSearch={fetchWeather} />
-//       {error && <p className="error">{error}</p>}
-//       {weather && <WeatherInfo data={weather} />}
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-// weatherstack
-
 import React, { useState } from 'react';
 import WeatherForm from './WeatherForm';
 import WeatherChart from './WeatherChart';
-import './App.css'; 
-
+import './App.css';
 
 function App() {
   const [weatherData, setWeatherData] = useState([]);
   const [error, setError] = useState('');
 
-  const fetchWeatherData = async (location, startDate, endDate) => {
-    const apiKey = 'ZCBPEWFX7766BHVBH6SMHZG4R'; // Replace with your API key
-    console.log({ location, startDate, endDate });
-    const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}/${startDate}/${endDate}?unitGroup=metric&key=${apiKey}&contentType=json`;
+  const fetchWeatherData = async (location) => {
+    const apiKey = 'e5b2bb4e6b834ef6a6f20016252301';
+    const baseUrl = 'http://api.weatherapi.com/v1/forecast.json';
 
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch data');
-      const data = await response.json();
+      const response = await fetch(`${baseUrl}?key=${apiKey}&q=${location}&days=3`);
 
-      const processedData = data.days.map((day) => ({
-        date: day.datetime,
-        temperature: day.temp,
+      if (!response.ok) throw new Error('Failed to fetch data');
+
+      const result = await response.json();
+
+      // Process data to include temperature, humidity, and wind speed
+      const data = result.forecast.forecastday.map((day) => ({
+        date: day.date,
+        location: location,
+        temperature: day.day.avgtemp_c, // Average temperature
+        humidity: day.day.avghumidity, // Average humidity
+        windSpeed: day.day.maxwind_kph, // Maximum wind speed in km/h
       }));
 
-      setWeatherData(processedData);
+      setWeatherData(data);
       setError('');
     } catch (err) {
       setError(err.message);
@@ -76,7 +37,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Weather Data Viewer</h1>
+      <h1>Weather Forecast Viewer</h1>
       <WeatherForm onSearch={fetchWeatherData} />
       {error && <p className="error">{error}</p>}
       {weatherData.length > 0 && <WeatherChart data={weatherData} />}
